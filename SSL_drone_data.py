@@ -37,9 +37,19 @@ def get_drone_data():
 
 def plot_drone_data(drone_data):
     plt.figure()
-    plt.plot(drone_data['optitrack'])
     plt.plot(drone_data['sonar'])
     plt.plot(pressure_to_height(drone_data['pressure'], np.mean(drone_data['sonar'])))
-    plt.legend(['optitrack', 'sonar', 'pressure-based height'])
+    plt.plot(drone_data['optitrack'], 'k--')
+    plt.ylabel('Height [m]')
+    plt.xlabel('Time [-]')
+    plt.legend(['sonar', 'pressure-based height', 'optitrack'])
+
+def plot_pressure(drone_data):
+    plt.figure()
+    plt.plot(drone_data['pressure'])
+    plt.xlabel('Time [-]')
+    plt.ylabel('Pressure [Pa]')
+    
+
 
 
