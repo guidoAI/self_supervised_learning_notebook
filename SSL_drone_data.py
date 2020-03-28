@@ -29,14 +29,17 @@ def pressure_to_height(pressure, base_height = 0):
         height += -np.mean(height) + base_height
     return height
 
+def get_drone_data():
+    pickle_in = open("drone_data.pickle","rb")
+    drone_data = pickle.load(pickle_in)
 
-pickle_in = open("drone_data.pickle","rb")
-drone_data = pickle.load(pickle_in)
+    return drone_data
 
-plt.figure()
-plt.plot(drone_data['optitrack'])
-plt.plot(drone_data['sonar'])
-plt.plot(pressure_to_height(drone_data['pressure'], np.mean(drone_data['sonar'])))
-plt.legend(['optitrack', 'sonar', 'pressure-based height'])
+def plot_drone_data(drone_data):
+    plt.figure()
+    plt.plot(drone_data['optitrack'])
+    plt.plot(drone_data['sonar'])
+    plt.plot(pressure_to_height(drone_data['pressure'], np.mean(drone_data['sonar'])))
+    plt.legend(['optitrack', 'sonar', 'pressure-based height'])
 
 
