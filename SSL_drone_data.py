@@ -72,6 +72,13 @@ def predict_regression_KNN(kNN, test_data):
 
 def map_pressure_to_sonar(drone_data, training_ratio=0.8, method = 'knn'):
 
+    # randomize inds:
+    #    n_inds = len(drone_data['sonar'])
+    #    inds = np.random.permutation(n_inds)
+    #    drone_data['pressure'] = drone_data['pressure'][inds]
+    #    drone_data['sonar'] = drone_data['sonar'][inds]
+    #    drone_data['optitrack'] = drone_data['optitrack'][inds]
+    
     train_ind = int(training_ratio * len(drone_data['pressure']))
     training_data = drone_data['pressure'][:train_ind]
     training_targets = drone_data['sonar'][:train_ind]
@@ -106,7 +113,11 @@ def map_pressure_to_sonar(drone_data, training_ratio=0.8, method = 'knn'):
     var_pressure = np.var(training_outputs-training_targets)
     # A priori knowledge:
     # var_pressure = np.var(training_outputs - training_ground_truth)
-    var_sonar = np.var(training_data - training_ground_truth)
+    var_sonar = np.var(training_targets - training_ground_truth)
+    mean_outputs = np.mean(training_outputs)
+    mean_sonar = np.mean(training_targets)
+    print('Mean pressure = {:.4f}, sonar = {:.4f}'.format(mean_outputs, mean_sonar))
+    print('Variance pressure = {:.4f}, sonar = {:.4f}'.format(var_pressure, var_sonar))
     test_fused = (var_sonar * test_outputs + var_pressure * test_targets) / (var_sonar + var_pressure)
     print('MAE sonar: {:.4f}, MAE learned pressure = {:.4f}, MAE fused = {:.4f}'.format(
           np.mean(abs(test_targets - test_ground_truth)), np.mean(abs(test_outputs - test_ground_truth)),
@@ -114,15 +125,21 @@ def map_pressure_to_sonar(drone_data, training_ratio=0.8, method = 'knn'):
     
     var_t = np.var(training_ground_truth)
     mean_t = np.mean(training_ground_truth)
-    print('Mean t = {}'.format(mean_t))
-    test_fused = (var_sonar * test_outputs + var_pressure * test_targets) / (var_sonar + var_pressure + var_t)
+    print('Mean t = {:.4f} variance t = {:.4f}'.format(mean_t, var_t))
+    test_fused = mean_t + (var_sonar * (test_outputs-mean_outputs) + var_pressure * (test_targets-mean_sonar)) \
+                            / (var_sonar + var_pressure + var_t)
     print('MAE sonar: {:.4f}, MAE learned pressure = {:.4f}, MAE fused = {:.4f}'.format(
           np.mean(abs(test_targets - test_ground_truth)), np.mean(abs(test_outputs - test_ground_truth)),
           np.mean(abs(test_fused - test_ground_truth)) ))
     
+    plt.figure()
+    #plt.hist(test_fused-test_ground_truth)
+    plt.hist(test_fused, alpha=0.5)
+    plt.hist(test_ground_truth, alpha=0.5)
+    plt.title('Error fused with prior')
     
 if __name__ == "__main__":
     drone_data = get_drone_data()
-    map_pressure_to_sonar(drone_data, method = 'knn')
+    map_pressure_to_sonar(drone_data, method = 'knn', training_ratio=0.75)
     
 
